@@ -1,1 +1,180 @@
-../../eta-api-swagger/api/swagger/swagger.yaml
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Executive Travel App API
+host: localhost:10010
+basePath: /
+schemes:
+  - http
+  - https
+consumes:
+  - application/json
+produces:
+  - application/vnd.eta.ai+json
+tags:
+  - name: Trips
+    description: Trips data operations
+  - name: Users
+    description: Users data operations
+  - name: FlightStatus
+    description: Flight Status operations
+paths:
+  /trips/{tripId}:
+    x-swagger-router-controller: trips
+    get:
+      tags:
+        - Trips
+      description: Returns a single trip
+      operationId: getTrip
+      parameters:
+        - name: tripId
+          in: path
+          description: Identifier of the trip requested
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/TripResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /users/{userId}/preferences/hotel:
+    x-swagger-router-controller: userPreferences
+    get:
+      tags:
+        - Users
+      description: Returns user's hotel preferences
+      operationId: getHotelPreferences
+      parameters:
+        - name: userId
+          in: path
+          description: Identifier of the user
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/UserPreferencesResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /flightStatus/{airlineId}/{flightNumber}:
+    x-swagger-router-controller: flightStatus
+    get:
+      tags:
+        - FlightStatus
+      description: Get flight status
+      operationId: getFlightStatus
+      parameters:
+        - name: airlineId
+          in: path
+          description: Airline Id (e.g. UA)
+          required: true
+          type: string
+        - name: flightNumber
+          in: path
+          description: Flight number (e.g. 1424)
+          required: true
+          type: integer
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/FlightStatusResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+# complex objects have schema definitions
+definitions:
+  TripResponse:
+    required:
+      - data
+    properties:
+      data:
+        $ref: "#/definitions/Trip"
+  Trip:
+    required:
+      - startTime
+      - endTime
+      - segments
+    properties:
+      startTime:
+        type: string
+        format: date-time
+      endTime:
+        type: string
+        format: date-time
+      segments:
+        type: array
+        items:
+          $ref: "#/definitions/TripSegment"
+  TripSegment:
+    discriminator: type
+    required:
+      - startTime
+      - endTime
+      - type
+    properties:
+      startTime:
+        type: string
+        format: date-time
+      endTime:
+        type: string
+        format: date-time
+      type:
+        type: string
+      data:
+        type: object
+  UserPreferencesResponse:
+    required:
+      - data
+    properties:
+      data:
+        $ref: "#/definitions/UserPreferences"
+  UserPreferences:
+    type: array
+    items:
+      $ref: "#/definitions/Preference"
+  Preference:
+    required:
+      - name
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+  FlightStatusResponse:
+    required:
+      - data
+    properties:
+      data:
+        $ref: "#/definitions/FlightStatus"
+  FlightStatus:
+    required:
+      - scheduledDepartureTime
+      - scheduledArrivalTime
+    properties:
+      scheduledDepartureTime:
+        type: string
+        format: date-time
+      scheduledArrivalTime:
+        type: string
+        format: date-time
+      actualDepartureTime:
+        type: string
+        format: date-time
+      actualArrivalTime:
+        type: string
+        format: date-time
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
